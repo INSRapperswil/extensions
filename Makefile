@@ -90,6 +90,7 @@ TARGETS += lldpd
 TARGETS += mdadm
 TARGETS += mei
 TARGETS += metal-agent
+TARGETS += multipath-tools
 TARGETS += nebula
 TARGETS += newt
 TARGETS += nfsd
@@ -284,4 +285,3 @@ release-notes: $(ARTIFACTS)
 conformance:
 	@docker pull $(CONFORMANCE_IMAGE)
 	@docker run --rm -it -v $(PWD):/src -w /src $(CONFORMANCE_IMAGE) enforce
-

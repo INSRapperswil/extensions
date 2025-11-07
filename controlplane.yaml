@@ -1,0 +1,308 @@
+version: v1alpha1
+debug: false
+persist: true
+machine:
+    type: controlplane
+    token: glldkg.ixeh2xr75c3bf7y9
+    ca:
+        crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJQakNCOGFBREFnRUNBaEF6MjZOYW1DWStPZUlRTWNzaXdIQ05NQVVHQXl0bGNEQVFNUTR3REFZRFZRUUsKRXdWMFlXeHZjekFlRncweU5URXhNRFl4TnpBeU1EUmFGdzB6TlRFeE1EUXhOekF5TURSYU1CQXhEakFNQmdOVgpCQW9UQlhSaGJHOXpNQ293QlFZREsyVndBeUVBNmJlTUpWcy9ha2RCTjYzdXZLMFU2cURaNVo2dmx0REo4RkU4ClZMSjV4YnFqWVRCZk1BNEdBMVVkRHdFQi93UUVBd0lDaERBZEJnTlZIU1VFRmpBVUJnZ3JCZ0VGQlFjREFRWUkKS3dZQkJRVUhBd0l3RHdZRFZSMFRBUUgvQkFVd0F3RUIvekFkQmdOVkhRNEVGZ1FVNzFxVmhhTi9hNzFDNVVxUwo0R0V4dmRDZTUzQXdCUVlESzJWd0EwRUFCanhhNlhhT3VVc3dWMUlDM2NFZG9ranlFVHdrYmlhUEFidGVTS3lyCk8yK3JVKzdHVVc5b2VBQlZtKzR3UUFadEowOGplMVNBZys1N2I2VU44SjNsRGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+        key: LS0tLS1CRUdJTiBFRDI1NTE5IFBSSVZBVEUgS0VZLS0tLS0KTUM0Q0FRQXdCUVlESzJWd0JDSUVJQ3F1WVFwVktEVkJtQmw1YWpCL1NtZml6eHljSmdBNHdCZDdvL3FuT25aVgotLS0tLUVORCBFRDI1NTE5IFBSSVZBVEUgS0VZLS0tLS0K
+    certSANs:
+        - test-ju-cp-0.network.garden
+    kernel:
+      modules:
+        - name: dm-multipath
+        - name: iscsi_tcp
+    kubelet:
+        image: ghcr.io/siderolabs/kubelet:v1.34.1
+        extraArgs:
+            rotate-server-certificates: "true"
+        defaultRuntimeSeccompProfileEnabled: true
+        disableManifestsDirectory: true
+    network:
+        hostname: test-ju-cp-0
+        interfaces:
+            - deviceSelector:
+                busPath: 0*
+              addresses:
+                - 10.8.36.18/23
+              routes:
+                - network: 0.0.0.0/0
+                  gateway: 10.8.36.1
+              vip:
+                ip: 10.8.36.16
+        nameservers:
+            - 152.96.13.53
+            - 152.96.13.54
+    install:
+        disk: /dev/sda
+        image: ghcr.io/siderolabs/installer:v1.9.2
+        wipe: false
+    time:
+        servers:
+            - 10.8.36.1
+        bootTimeout: 2m0s
+    features:
+        rbac: true
+        stableHostname: true
+        apidCheckExtKeyUsage: true
+        diskQuotaSupport: true
+        kubePrism:
+            enabled: true
+            port: 7445
+        hostDNS:
+            enabled: true
+            forwardKubeDNSToHost: true
+    nodeLabels:
+        node.kubernetes.io/exclude-from-external-load-balancers: ""
+cluster:
+    id: qQFAKKncQdnz-2e-fpSkQcqw5FDdCT6KyR_ojg-C_gQ=
+    secret: 3UQSeU0uAhlk3DMMrm8FbSkgsHo3ybaWpCHb71OLgOI=
+    controlPlane:
+        endpoint: https://k8s-test-ju.network.garden:6443
+    clusterName: test-ju
+    network:
+        cni:
+            name: none
+        dnsDomain: cluster.local
+        podSubnets:
+            - 10.244.0.0/16
+        serviceSubnets:
+            - 10.96.0.0/12
+    token: kxn67f.kspfrtztx0194b2n
+    secretboxEncryptionSecret: MMer8GEgkmVcSJAa7Gjh2qpfBcZHCtZZjJkSV0t11B4=
+    ca:
+        crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJpVENDQVRDZ0F3SUJBZ0lSQU5sdXljMWhLSW1QNEd0UHZZaVVTQVV3Q2dZSUtvWkl6ajBFQXdJd0ZURVQKTUJFR0ExVUVDaE1LYTNWaVpYSnVaWFJsY3pBZUZ3MHlOVEV4TURZeE56QXlNRFJhRncwek5URXhNRFF4TnpBeQpNRFJhTUJVeEV6QVJCZ05WQkFvVENtdDFZbVZ5Ym1WMFpYTXdXVEFUQmdjcWhrak9QUUlCQmdncWhrak9QUU1CCkJ3TkNBQVN6YmlYR0FCYm8ySkF2Z0JwWWo3STlzRndnZElVcmpkdkJPV25hMU9KL1Q0ZndkRUp0cE9XRGhsdzYKVE5wQ2t4YVljT2hUMDJ2ZUxxK1NJZFpVUjVzc28yRXdYekFPQmdOVkhROEJBZjhFQkFNQ0FvUXdIUVlEVlIwbApCQll3RkFZSUt3WUJCUVVIQXdFR0NDc0dBUVVGQndNQ01BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0hRWURWUjBPCkJCWUVGRzlkc2gwRDVBSHRvQW1zQnUwVCs0U21vWFFITUFvR0NDcUdTTTQ5QkFNQ0EwY0FNRVFDSUFLRUhZcEUKdmw3SGpBdHVnbFpjdVZuMmF6dzdIMWw3R1BjR1VSS2NndHFGQWlCSkloYzBOUmVCb2ZGL0s0R3BLOFZFWUw2Mgo5alYrdmxpeW4yM1Nic25Xanc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+        key: LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSUhXSEsxalJzY2ZKZzI5UDEzZFlMMVZoMHZOVWtkbXZydmFJYzladS9zeXlvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFczI0bHhnQVc2TmlRTDRBYVdJK3lQYkJjSUhTRks0M2J3VGxwMnRUaWYwK0g4SFJDYmFUbApnNFpjT2t6YVFwTVdtSERvVTlOcjNpNnZraUhXVkVlYkxBPT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=
+    aggregatorCA:
+        crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJYakNDQVFXZ0F3SUJBZ0lRZjE3Tkg0ZFdQZUM2RDVscDkrUkFLakFLQmdncWhrak9QUVFEQWpBQU1CNFgKRFRJMU1URXdOakUzTURJd05Gb1hEVE0xTVRFd05ERTNNREl3TkZvd0FEQlpNQk1HQnlxR1NNNDlBZ0VHQ0NxRwpTTTQ5QXdFSEEwSUFCQTB4NzhKV3p4RHIySUd0M2FubjMzbkloMXBlTmRVT0RyTk1PcWEyc1lhem1oaTFtZEc0CjQwYngxc1I5cEh5VitLNnFOMVI2U3VzWmEwKzdIWTFkaWl5allUQmZNQTRHQTFVZER3RUIvd1FFQXdJQ2hEQWQKQmdOVkhTVUVGakFVQmdnckJnRUZCUWNEQVFZSUt3WUJCUVVIQXdJd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBZApCZ05WSFE0RUZnUVVPVjBodEdnZ2VGcjh2dlRydXhWVFBDeDNzMkF3Q2dZSUtvWkl6ajBFQXdJRFJ3QXdSQUlnCk83aU9GSU1Ya1plT2dnem0wdjM3N3RoZjVwc25JQ3pKSURJUzhzOGprVGNDSUMvdjNURGlZSy96VnNYcEZtWXMKS1RGdlIyMWwyeHdxaDMyTXpLZWhsUW9WCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+        key: LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSUR5TFVwVlhndkRpM2NZb0VySjhyWXJpS1B3TFoyOTg3VzVZQ29BRkcxVXlvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFRFRIdndsYlBFT3ZZZ2EzZHFlZmZlY2lIV2w0MTFRNE9zMHc2cHJheGhyT2FHTFdaMGJqagpSdkhXeEgya2ZKWDRycW8zVkhwSzZ4bHJUN3NkalYyS0xBPT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=
+    serviceAccount:
+        key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS0FJQkFBS0NBZ0VBdTBhaGp6ZG84a3NLSkVxTkZ1SzVBeW1TZDNSeFg2c0lNZEF0cjg0WDdsamw0UGN0CndTOWRESlhtaXVUVFllM0ZBblk2SlMxOGZMWk5xNkFFSTRPaTYzN2ZESDh5U29jaGl3ZUVKYzRVYnNPVUs0OWEKb1FBaHdHVkNGUTl3YlVuQUJWREw1Q3NjQlNvS0kzay9QUWFnNlNobCsvRGJJM2d3ZGFWdHRwUGZEUUpVWUNReQoybXZOdEt4ZVR4bWNHem5xeXNaYndjWFppRlI0bkdyMDFVNlNFUTRCTEtBN2xKeTA2REdxQ0hGV3dWOU5QMUpPCk52WTBJN3hhMUhtOHkreXRUZTVxRlJ4VTN0TjcvZG5OTEhZTnlYbEVNLzNranFyUVJ5SDh2RExWb05Lc0xyeTUKVlM0VEFRS3RUQ2V2T0tjdmZwYWZWNmI0aTg4U3A2ZHBybW9zQVNacWRncm5lOEN2bHpaQ21TOG4xS2lIZnBlTAphbitYY3Bna2NScStwUU44TEFCZ3VDN2VuTFNpY0JIK1V6Z05jNktZZ0lDdEFuMlBvQXdQTmxXMml3UzUreHc5CmlRTm4ydVA1TDF2aHNGZWtScnBydVRuaHVpc1hBRGU3a1lnSytVdnE1NmJna2lOelZ0YlV5VnNhS0dYVlUwcXoKcmMzd243bGRzUFVtTmF0dWZJSHowUGc0UDlxY1VXNEpmb0RZck5YVkQxTDBOZ0lqK01pOUdmMHQrWHRROFIydwp6ajd1bzdkQnhDaUJBYnhRTWxkQU5TTUJncXZYdWdVOWFKYVpZcVFUV0o4c1VMTWJ0Q1VBb1g2ZjhZbVg5V0tsCm9qV0ZESW9ZM3MvaEZESGc4NW4yOUEwWHhCZ0I0c0hITEw3VDRGRjRQSGRYbGhIRDJZcVhKUnZVMEZNQ0F3RUEKQVFLQ0FnQjBTUmxNaW9WNTNhcUFlbUk5VWE2OERmWktnbDFib0NISWZKSEIxbUQ1dU8yVTBTYnlDK3psUWJjVAppNTdOOGd3Z3lUUzFuUmJ0Z1cyZEloRXYxQzgzdDJIY3FxYVpyR3JobjFzbzlsdXRvM2UvekpYajN1Y1dSa25RCk5mUURpSVhaUnlBem42a1ljOUF6MHJlM3R3UDNnd1JBZW9BMytBdHZJYmVNWlNsZE5KTWIxNTVVRGhoL0ZZREIKOFE4RHdPVFA0SGRkVFBNVU9nOWlZTytCKy9XcTdWMUJUb1Z3ZEJYSkQvMmFuSFhZUU1zQWhLVFliK3hVUEVMUwpLSDFZeXErWjhtNmdpU1VSNzVQUVBvdXVEZWZsc0l6dkU3bjE5STY3Zkprb2F4Qkhla2s4QkNlNGdwRitVU0UyClpuWGc0YjhXQllVUHNqZ201LytYWnRheVhHN1JmNWd1cTEveXk1b0lYNktvMWhWbEw3Qk54bFBOYlBJWnBUcFEKMEluVEdpeFpCZUJFMFF3Q1o5VUZraUUvQjliOHY0eG9mdlFUQndmb1A0Yy9hUEYzYkFBdGxXRTdaNmpsdUF3UAppRTFpMmhJQmpaVE52UHRrelhlTVJTQjR3YlJFa3psUExaa1o2VkNLSG01UWQxTlFmbzVHY3dndjBQOXBTSzJrCitIODRzZk5OQUhiZm45NVVzSDl4Z0JkWitZU2VFVExGdkRIUC91b081VW1nVTlmd0Jra1B6QzNUTzR5cXlCemwKNHBNdExZMjMrYTA5eEpWZ21QSjV4QjFqZzVIb1l0VWFxOXRoN3lZVUh0MTdWUGhCYjA4eFh4M0tHaXVxUzNETAoxY0FvQ2xQYmdTSllDQWRqSHd6Y01BVE9nMVQzM3E4cURIV2V6YlliMXJsMjJDQXE4UUtDQVFFQTZHTjUxWGllCjAydU5hK3FYM2ErVlYrSk5tNEJjUVJSa01NMFRrOWtsOEdENUVEaG5QeFVWK0o0RkpqZS9vS0xCeXk5SlhtbHoKSjU0SUlxR05Nc0xMUWV2MW9Na3NMZlVFNlhJam41RS9iOGZjSVlOOWdkbld0UlhKRHp4c012TXY5cVBUWExTVApXZURvQXVsdDFzVjdDUGtBVHZ3aVJRVEFScnhBYW9lN2NuVXp3bVV2OVJIL0RuOE1yL1htMVY4SHBaYlNXaWZxCnhVYms1Q0pCSm5KVTJ3UVN6NHlLY0JOQmFEZklLNWpIaGxRakhCZnIzbkZKZnpYYkVWRllIMWQwMGltT3pudzMKTFRUOWg4ZWdDS1RCTStBVmNEZFIxb0lBa1UwZkFCVE1FT1VzZmxEWlRUcm5vREd6eE1pbGEyV2lNcy84YVNBZworZ2N2dEtkS3kvUHJUUUtDQVFFQXprM0JjVDRibVdEWnV2bWFCSXN2K0pvSTVTOVVpOHF4V29WUVAzUVpoeFovCm5CRFl6NUtsK2M5RGdnSTdUN2FveXJWeW1WaWZMb1QwZEM2L0NrTGw5bDM3NHB0Wk1TclZxN1JhNzJjYkk3NloKb1Z3ZGRoSUVwV1hZZWdKRjZ2d2toMDJodlh0QUlsaC9hcjhEajNyRFhuUWtLOHpkbjM5eElYeEFFMnN6RU16bgpDa3NUdy9Cd0NWTFE5L0p3Y25udjhBSWF0Szc2TWNRa1YyV25hOU1WYUQzdThXcTJxNTNCdVRmUnlzelRjNVE1Cnd0U3lZNXVhTTlLQjNxQnBzSFVtUG9qSlYvZFFRQWp3cjNUQlIxc2laYVNMaFpSS1czcFg5VnF1bUxQbVZBUDcKYXFBTG5IL010b1ZEcDR1dDhETzBlbUpLazRKaTEwTTNEQ3Nndnp1YUh3S0NBUUVBdk1KNFp0WVlKR0RiT1lvUApHeW1RNUJiVXRQZDVkLzlKTm42TlpXMWZyTFlIK0kzb0IweG9VVTZCbmo1d0w5bWtFaGR4di9kbGF3dXBUZi90ClFnc0pzSjBxSWhUbUJ0cGJ5QWRIT2todnY2c1dlajVsQnNGYjdqRW81SEJPN3IrcitPbXZPRUVRNDFPVkFUQjgKWUpSOTBKYjVFaThvNHVqdUNVYkdDQUlDVndFdUxydWtUYXIxZ3QvZC9WdCt5VmZzVFN1SjUyTS9Ca2tFaU8zdAovMzJrd1ZXNHRjOVJiNkdrWWpQVkt0eHBUUW93anBRN3FhNVpaYlBvSWxQeGdWdTNieklFWm1KdEt4STgwVHBzCkdqbEJHWkx0dHYyb1F0WE1Bam9qY1J4emVWRzlaMGppaVNITW5NbGlYUGdoclcrYlpTeWR1UUk0NXY1SldMTCsKUlZYMmpRS0NBUUJrUHFvaGdhRmRqUThmYUl1cmE0cTZ6UFpIanhFUkFFUGZqV25wKzFzd0pnR0o3ekc2NHpKZApTWll2QlRDVzBsWUFjZHltb01ad2oxQk5hQzJTS2VHZUxocm9DTDUxUXJBaXgvZHIzdmowREhpUVRMZFFHUDlDCjgxTVdMaWFWUVVIcXNSRkhoaTBxd3ovZXVjUmNJclh1SHBjNDVVcEhaMkNzZWJpVTl3RVFSOUI0VXZUZXYrVmcKMG1vU0lTNzhvVDJ5clFNWEN2TXQzWFlmTlpqOXJzcjNKU2tIQytpSlNaWEpqMU1VclNTT1E5Y3hVYk1BN2FvbgpSa0d1ME5tcVViSnNyb0RQaXEvbS9iRWVRS2h1S04xMDhGaVBadmdlclRzeVVJY0lVbG80TnRzaSszUEk3dHlsClQrb0k3cmx0UDJLU0dWTE5qSXpFdHJkMzVUajdVMVhYQW9JQkFGOTFyb0x0dmJVMGxyZGs0RTRTSmpzTGVTU1AKajBQMytTb3Btejg4WHFKRFh1UmdrR2FJMXdYeDJrSnFIbUxOK1FxcmtrbEIvYXVvUEcySjVyeVFuZE1CN04xNQpsd0l1NWlXeGYzWUN3M0cvcXg1U0hweGdSN3dmdndZV0xQMCtOY3hVNi9qYjQzZWxJRmNGTTVIT29hYXg5U2t6CnVOeEZzckhIQkNpNzBZQWhmWUUzYklITGZRbGlDbDcwRVVHV0d0YVlTQlJqWXdXL2NOY0ZHb2NUaktsb1UyKzQKV2tIUHBkb2Uydk9hOWlBU0tzN1VkN0lXOTVVWHo4b2lxcmdwK1lGNHhwckpGaE9jd3c0enpHUXRBVjA5djhXQgpDM1kxT3RpSGdNSmhUN3BpaW0xZEFUTktxQW1Rajhhck41YWluYWxDQVhGMGdNenJWZko1UnZjWnZxVT0KLS0tLS1FTkQgUlNBIFBSSVZBVEUgS0VZLS0tLS0K
+    apiServer:
+        image: registry.k8s.io/kube-apiserver:v1.34.1
+        certSANs:
+            - k8s-test-ju.network.garden
+        disablePodSecurityPolicy: true
+        admissionControl:
+            - name: PodSecurity
+              configuration:
+                apiVersion: pod-security.admission.config.k8s.io/v1
+                defaults:
+                    audit: baseline
+                    audit-version: latest
+                    enforce: baseline
+                    enforce-version: latest
+                    warn: baseline
+                    warn-version: latest
+                exemptions:
+                    namespaces:
+                        - kube-system
+                    runtimeClasses: []
+                    usernames: []
+                kind: PodSecurityConfiguration
+        auditPolicy:
+            apiVersion: audit.k8s.io/v1
+            kind: Policy
+            rules:
+                - level: Metadata
+    controllerManager:
+        image: registry.k8s.io/kube-controller-manager:v1.34.1
+    proxy:
+        disabled: true
+        image: registry.k8s.io/kube-proxy:v1.34.1
+    scheduler:
+        image: registry.k8s.io/kube-scheduler:v1.34.1
+    discovery:
+        enabled: true
+        registries:
+            kubernetes:
+                disabled: true
+            service: {}
+    etcd:
+        ca:
+            crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJmVENDQVNTZ0F3SUJBZ0lSQU9ReHduVlgva3M3Tm5SaElPVGNtK1F3Q2dZSUtvWkl6ajBFQXdJd0R6RU4KTUFzR0ExVUVDaE1FWlhSalpEQWVGdzB5TlRFeE1EWXhOekF5TURSYUZ3MHpOVEV4TURReE56QXlNRFJhTUE4eApEVEFMQmdOVkJBb1RCR1YwWTJRd1dUQVRCZ2NxaGtqT1BRSUJCZ2dxaGtqT1BRTUJCd05DQUFRUy82RS8wb0dTCjRNcmZjRC8rN2JJYkZtTWZNL21CT3JqSjJxdzBQQmhiSEFiZHgzUllrSzk0anVWZkJrYTYveGJkVlMySEFDeWgKOWNNNmdXeGNKaTU2bzJFd1h6QU9CZ05WSFE4QkFmOEVCQU1DQW9Rd0hRWURWUjBsQkJZd0ZBWUlLd1lCQlFVSApBd0VHQ0NzR0FRVUZCd01DTUE4R0ExVWRFd0VCL3dRRk1BTUJBZjh3SFFZRFZSME9CQllFRkFNdVFsZE5MQ3FhCkp0WE1UbDZDdFBTbW14KzdNQW9HQ0NxR1NNNDlCQU1DQTBjQU1FUUNJR2FVK0dIenJmUVQ4MUR5dVBpbTNRRWsKOGEzZEltcTljM0RVMlE4U2w3RUlBaUJUdjVlR1N3Y0QzRjA4ZHlFTHVMaUN3TEptQkREMGtJVXVYLzN5bTdHKwpnZz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+            key: LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSUkvaG1tSnRkWnpEbGxqeW9HcFlud2o2alJ3Y0JXb3ZJTWNXYnVrUjJzK2xvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFRXYraFA5S0JrdURLMzNBLy91MnlHeFpqSHpQNWdUcTR5ZHFzTkR3WVd4d0czY2QwV0pDdgplSTdsWHdaR3V2OFczVlV0aHdBc29mWERPb0ZzWENZdWVnPT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=
+    extraManifests:
+        - https://raw.githubusercontent.com/alex1989hu/kubelet-serving-cert-approver/main/deploy/standalone-install.yaml
+        - https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    inlineManifests:
+        - name: local-path-provisioner
+          contents: |-
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              labels:
+                pod-security.kubernetes.io/enforce: privileged
+                pod-security.kubernetes.io/enforce-version: latest
+                pod-security.kubernetes.io/warn: privileged
+                pod-security.kubernetes.io/warn-version: latest
+                pod-security.kubernetes.io/audit: privileged
+                pod-security.kubernetes.io/audit-version: latest
+              name: local-path-storage
+            ---
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: local-path-provisioner-service-account
+              namespace: local-path-storage
+
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: Role
+            metadata:
+              name: local-path-provisioner-role
+              namespace: local-path-storage
+            rules:
+              - apiGroups: [""]
+                resources: ["pods"]
+                verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: local-path-provisioner-role
+            rules:
+              - apiGroups: [""]
+                resources: ["nodes", "persistentvolumeclaims", "configmaps", "pods", "pods/log"]
+                verbs: ["get", "list", "watch"]
+              - apiGroups: [""]
+                resources: ["persistentvolumes"]
+                verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+              - apiGroups: [""]
+                resources: ["events"]
+                verbs: ["create", "patch"]
+              - apiGroups: ["storage.k8s.io"]
+                resources: ["storageclasses"]
+                verbs: ["get", "list", "watch"]
+
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+              name: local-path-provisioner-bind
+              namespace: local-path-storage
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: Role
+              name: local-path-provisioner-role
+            subjects:
+              - kind: ServiceAccount
+                name: local-path-provisioner-service-account
+                namespace: local-path-storage
+
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: local-path-provisioner-bind
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: local-path-provisioner-role
+            subjects:
+              - kind: ServiceAccount
+                name: local-path-provisioner-service-account
+                namespace: local-path-storage
+
+            ---
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: local-path-provisioner
+              namespace: local-path-storage
+            spec:
+              replicas: 1
+              selector:
+                matchLabels:
+                  app: local-path-provisioner
+              template:
+                metadata:
+                  labels:
+                    app: local-path-provisioner
+                spec:
+                  serviceAccountName: local-path-provisioner-service-account
+                  containers:
+                    - name: local-path-provisioner
+                      image: rancher/local-path-provisioner:v0.0.26
+                      imagePullPolicy: IfNotPresent
+                      command:
+                        - local-path-provisioner
+                        - --debug
+                        - start
+                        - --config
+                        - /etc/config/config.json
+                      volumeMounts:
+                        - name: config-volume
+                          mountPath: /etc/config/
+                      env:
+                        - name: POD_NAMESPACE
+                          valueFrom:
+                            fieldRef:
+                              fieldPath: metadata.namespace
+                  volumes:
+                    - name: config-volume
+                      configMap:
+                        name: local-path-config
+
+            ---
+            apiVersion: storage.k8s.io/v1
+            kind: StorageClass
+            metadata:
+              name: local-path
+            provisioner: rancher.io/local-path
+            volumeBindingMode: WaitForFirstConsumer
+            reclaimPolicy: Delete
+
+            ---
+            kind: ConfigMap
+            apiVersion: v1
+            metadata:
+              name: local-path-config
+              namespace: local-path-storage
+            data:
+              config.json: |-
+                {
+                        "nodePathMap":[
+                        {
+                                "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                                "paths":["/opt/local-path-provisioner"]
+                        }
+                        ]
+                }
+              setup: |-
+                #!/bin/sh
+                set -eu
+                mkdir -m 0777 -p "$VOL_DIR"
+              teardown: |-
+                #!/bin/sh
+                set -eu
+                rm -rf "$VOL_DIR"
+              helperPod.yaml: |-
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  name: helper-pod
+                spec:
+                  priorityClassName: system-node-critical
+                  tolerations:
+                    - key: node.kubernetes.io/disk-pressure
+                      operator: Exists
+                      effect: NoSchedule
+                  containers:
+                  - name: helper-pod
+                    image: busybox
+                    imagePullPolicy: IfNotPresent
+    allowSchedulingOnControlPlanes: true
+---
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: multipath-config
+configFiles:
+  - content: |
+      defaults {
+          user_friendly_names yes
+          find_multipaths no
+      }
+    mountPath: /etc/multipath.conf

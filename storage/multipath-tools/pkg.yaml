@@ -1,0 +1,88 @@
+name: multipath-tools
+variant: alpine
+shell: /bin/sh
+dependencies:
+  - stage: base
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/systemd-udevd:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libjson-c:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/liburcu:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libcap:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libaio:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/util-linux:{{ .BUILD_ARG_PKGS }}"
+steps:
+  - sources:
+      - url: "https://sg.danny.cz/scsi/lsscsi-0.32.tar.gz"
+        destination: lsscsi.tar.gz
+        sha256: 0a800e9e94dca2ab702d65d72777ae8cae078e3d74d0bcbed64ba0849e8029a1
+        sha512: 96cb87be53eae9fa3a7defa0065f4dee8ccc23805a9ed1dc93d101c5e0610b78765b61449bf6ce58c13de8aae8400e4ac6a60ad64f840d092b9d7293106c5145
+
+      - url: https://github.com/opensvc/multipath-tools/archive/refs/tags/{{ .MULTIPATH_TOOLS_VERSION }}.tar.gz
+        destination: multipath-tools.tar.gz
+        sha256: f2e67a1d2167f3945afab6f0697207a03678f5b2bd80f1f45958c6fa1dfb8eef
+        sha512: 8f545609fa20df7547428f2929571dc0df87c17d9f61f11aad3559446c2e94755e18b1c4b3780b3de92ec2cbc450939ca15a9d6c95551eee4084064d83874b2d
+    env:
+      PKG_CONFIG_PATH: /usr/lib/pkgconfig
+    prepare:
+      - |
+        sed -i 's#$VERSION#{{ .VERSION }}#' /pkg/manifest.yaml
+      - |
+        tar -xzf multipath-tools.tar.gz --strip-components=1
+      # This removes a dependency on libgcc
+      - |
+        patch -p1 < /pkg/patches/disable-exception-handling.patch
+      - |
+        mkdir lsscsi
+        tar -xzf lsscsi.tar.gz --strip-components=1 -C lsscsi
+    build:
+      - |
+        make -j $(nproc) prefix=/usr/local LIB=lib SYSTEMD=""
+      - |
+        cd lsscsi
+        ./configure --prefix=/usr/local --exec-prefix=/usr/local
+        make -j $(nproc) DESTDIR=/rootfs
+        cd /
+    install:
+      - |
+        make prefix=/usr/local DESTDIR=/rootfs LIB=lib install
+      - |
+        cd lsscsi
+        make DESTDIR=/rootfs install
+        cd ..
+      - |
+        cp /usr/bin/ls /rootfs/usr/local/bin
+        cp /usr/bin/free /rootfs/usr/local/bin
+        cp /usr/bin/cat /rootfs/usr/local/bin
+        cp /usr/bin/sh /rootfs/usr/local/bin
+      - |
+        mkdir -p /rootfs/usr/local/etc/containers
+        cp /pkg/multipathd.yaml /rootfs/usr/local/etc/containers/
+      # - |
+      #   mkdir -p /rootfs/usr/local/etc
+      #   cp /pkg/multipath.conf /rootfs/usr/local/etc/multipath.conf
+      - |
+        mkdir -p /rootfs/usr/local/lib/containers/multipathd
+      # This file wants to load kernel module `dm-multipath`.
+      # Talos users should load kernel modules via MachineConfig instead.
+      - |
+        rm /rootfs/usr/lib/modules-load.d/multipath.conf
+        rmdir /rootfs/usr/lib/modules-load.d
+      # This file tries to create a tmpfs mount at `/var/run/multipath`.
+      # TODO: Probably should do this in the extension service or elsewhere.
+      - |
+        rm /rootfs/usr/lib/tmpfiles.d/multipath.conf
+        rmdir /rootfs/usr/lib/tmpfiles.d
+      # TODO: Not sure what to do with this yet.
+      - |
+        rm /rootfs/usr/lib/udev/kpartx_id
+    test:
+      - |
+        mkdir -p /extensions-validator-rootfs
+        cp -r /rootfs/ /extensions-validator-rootfs/rootfs
+        cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
+        /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
+finalize:
+  - from: /rootfs
+    to: /rootfs
+  - from: /pkg/manifest.yaml
+    to: /
