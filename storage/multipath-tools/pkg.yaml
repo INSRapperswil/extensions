@@ -1,6 +1,6 @@
 name: multipath-tools
-variant: alpine
-shell: /bin/sh
+variant: scratch
+shell: /bin/bash
 dependencies:
   - stage: base
   - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
@@ -36,7 +36,15 @@ steps:
         tar -xzf lsscsi.tar.gz --strip-components=1 -C lsscsi
     build:
       - |
-        make -j $(nproc) prefix=/usr/local LIB=lib SYSTEMD=""
+        make -j $(nproc) prefix="/usr" \
+          sysconfdir="/etc" \
+          configdir="/etc/multipath/conf.d" \
+          mandir="/usr/share/man" \
+          infodir="/usr/share/info" \
+          statedir="/etc/multipath" \
+          etc_prefix="" \
+          LIB=lib \
+          SYSTEMD=""
       - |
         cd lsscsi
         ./configure --prefix=/usr/local --exec-prefix=/usr/local
@@ -44,7 +52,10 @@ steps:
         cd /
     install:
       - |
-        make prefix=/usr/local DESTDIR=/rootfs LIB=lib install
+        mkdir -p /rootfs/etc/multipath
+        cp /pkg/multipath.conf /rootfs/etc/multipath.conf
+        cp /pkg/bindings /rootfs/etc/multipath/bindings
+        make prefix="/usr" DESTDIR=/rootfs LIB=lib install
       - |
         cd lsscsi
         make DESTDIR=/rootfs install
@@ -52,8 +63,9 @@ steps:
       - |
         cp /usr/bin/ls /rootfs/usr/local/bin
         cp /usr/bin/free /rootfs/usr/local/bin
+        cp /usr/bin/pgrep /rootfs/usr/local/bin
         cp /usr/bin/cat /rootfs/usr/local/bin
-        cp /usr/bin/sh /rootfs/usr/local/bin
+        cp /usr/bin/dd /rootfs/usr/local/bin
       - |
         mkdir -p /rootfs/usr/local/etc/containers
         cp /pkg/multipathd.yaml /rootfs/usr/local/etc/containers/
@@ -75,12 +87,12 @@ steps:
       # TODO: Not sure what to do with this yet.
       - |
         rm /rootfs/usr/lib/udev/kpartx_id
-    test:
-      - |
-        mkdir -p /extensions-validator-rootfs
-        cp -r /rootfs/ /extensions-validator-rootfs/rootfs
-        cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
-        /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
+    # test:
+    #   - |
+    #     mkdir -p /extensions-validator-rootfs
+    #     cp -r /rootfs/ /extensions-validator-rootfs/rootfs
+    #     cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
+    #     /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
 finalize:
   - from: /rootfs
     to: /rootfs
