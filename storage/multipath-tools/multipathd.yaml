@@ -3,7 +3,6 @@ container:
   security:
     maskedPaths: []
     readonlyPaths: []
-    writeableSysfs: true
     writeableRootfs: true
   entrypoint: /usr/sbin/multipathd
   args:
@@ -50,23 +49,12 @@ container:
       options:
         - bind
         - ro
-    - source: /usr/local/lib/containers
-      destination: /usr/local/lib/containers
-      type: bind
-      options:
-        - bind
-        - rw
+    # /dev/mapper and multipath disk 
     - source: /dev
       destination: /dev
       type: bind
       options:
         - bind
-        - rw
-    - source: /sys
-      destination: /sys
-      type: rbind
-      options:
-        - rbind
         - rw
 
 depends:
