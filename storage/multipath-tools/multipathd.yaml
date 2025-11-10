@@ -17,20 +17,13 @@ container:
       options:
         - bind
         - ro
-    # /etc/udev/udev.conf /etc/multipath.conf
-    - source: /etc
+    # /etc/multipath.conf /etc/multipath/bindings
+    - source: /usr/local/lib/containers/etc
       destination: /etc
       type: bind
       options:
         - bind
-        - ro
-    # /etc/udev/udev.conf /etc/multipath.conf
-    # - source: /etc/multipath # <-- MUST be the host's persistent volume path
-    #   destination: /etc/multipath # <-- MUST be /etc/multipath for the daemon
-    #   type: rbind
-    #   options:
-    #     - rbind
-    #     - rw
+        - rw
     # libs
     - source: /usr/lib/multipath
       destination: /usr/lib/multipath

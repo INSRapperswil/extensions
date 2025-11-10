@@ -52,9 +52,9 @@ steps:
         cd /
     install:
       - |
-        mkdir -p /rootfs/etc/multipath
-        cp /pkg/multipath.conf /rootfs/etc/multipath.conf
-        cp /pkg/bindings /rootfs/etc/multipath/bindings
+        mkdir -p /rootfs/usr/local/lib/containers/etc/multipath
+        cp /pkg/multipath.conf /rootfs/usr/local/lib/containers/etc/multipath.conf
+        cp /pkg/bindings /rootfs/usr/local/lib/containers/etc/multipath/bindings
         make prefix="/usr" DESTDIR=/rootfs LIB=lib install
       - |
         cd lsscsi
