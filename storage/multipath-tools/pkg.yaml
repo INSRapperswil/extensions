@@ -12,11 +12,6 @@ dependencies:
   - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/util-linux:{{ .BUILD_ARG_PKGS }}"
 steps:
   - sources:
-      - url: "https://sg.danny.cz/scsi/lsscsi-0.32.tar.gz"
-        destination: lsscsi.tar.gz
-        sha256: 0a800e9e94dca2ab702d65d72777ae8cae078e3d74d0bcbed64ba0849e8029a1
-        sha512: 96cb87be53eae9fa3a7defa0065f4dee8ccc23805a9ed1dc93d101c5e0610b78765b61449bf6ce58c13de8aae8400e4ac6a60ad64f840d092b9d7293106c5145
-
       - url: https://github.com/opensvc/multipath-tools/archive/refs/tags/{{ .MULTIPATH_TOOLS_VERSION }}.tar.gz
         destination: multipath-tools.tar.gz
         sha256: f2e67a1d2167f3945afab6f0697207a03678f5b2bd80f1f45958c6fa1dfb8eef
@@ -31,9 +26,6 @@ steps:
       # This removes a dependency on libgcc
       - |
         patch -p1 < /pkg/patches/disable-exception-handling.patch
-      - |
-        mkdir lsscsi
-        tar -xzf lsscsi.tar.gz --strip-components=1 -C lsscsi
     build:
       - |
         make -j $(nproc) prefix="/usr" \
@@ -45,37 +37,15 @@ steps:
           etc_prefix="" \
           LIB=lib \
           SYSTEMD=""
-      - |
-        cd lsscsi
-        ./configure --prefix=/usr/local --exec-prefix=/usr/local
-        make -j $(nproc) DESTDIR=/rootfs
-        cd /
     install:
       - |
-        mkdir -p /rootfs/usr/local/lib/containers/etc/multipath
-        cp /pkg/multipath.conf /rootfs/usr/local/lib/containers/etc/multipath.conf
-        cp /pkg/bindings /rootfs/usr/local/lib/containers/etc/multipath/bindings
+        mkdir -p /rootfs/usr/local/lib/containers/multipathd/etc/multipath
+        cp /pkg/multipath.conf /rootfs/usr/local/lib/containers/multipathd/etc/multipath.conf
+        cp /pkg/bindings /rootfs/usr/local/lib/containers/multipathd/etc/multipath/bindings
         make prefix="/usr" DESTDIR=/rootfs LIB=lib install
-      - |
-        cd lsscsi
-        make DESTDIR=/rootfs install
-        cd ..
-      - |
-        cp /usr/bin/ls /rootfs/usr/local/bin
-        cp /usr/bin/free /rootfs/usr/local/bin
-        cp /usr/bin/pgrep /rootfs/usr/local/bin
-        cp /usr/bin/cat /rootfs/usr/local/bin
-        cp /usr/bin/dd /rootfs/usr/local/bin
       - |
         mkdir -p /rootfs/usr/local/etc/containers
         cp /pkg/multipathd.yaml /rootfs/usr/local/etc/containers/
-      # - |
-      #   mkdir -p /rootfs/usr/local/etc
-      #   cp /pkg/multipath.conf /rootfs/usr/local/etc/multipath.conf
-      - |
-        mkdir -p /rootfs/usr/local/lib/containers/multipathd
-      # This file wants to load kernel module `dm-multipath`.
-      # Talos users should load kernel modules via MachineConfig instead.
       - |
         rm /rootfs/usr/lib/modules-load.d/multipath.conf
         rmdir /rootfs/usr/lib/modules-load.d

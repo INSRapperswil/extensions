@@ -17,7 +17,7 @@ container:
         - bind
         - ro
     # /etc/multipath.conf /etc/multipath/bindings
-    - source: /usr/local/lib/containers/etc
+    - source: /usr/local/lib/containers/multipathd/etc
       destination: /etc
       type: bind
       options:

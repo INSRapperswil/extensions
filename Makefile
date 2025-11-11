@@ -113,6 +113,7 @@ TARGETS += stargz-snapshotter
 TARGETS += tailscale
 TARGETS += tenstorrent
 TARGETS += thunderbolt
+TARGETS += trident-operator-tools
 TARGETS += uinput
 TARGETS += usb-modem-drivers
 TARGETS += util-linux-tools

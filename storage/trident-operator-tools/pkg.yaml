@@ -1,0 +1,49 @@
+name: trident-operator-tools
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/systemd-udevd:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libjson-c:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/liburcu:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libcap:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libaio:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/util-linux:{{ .BUILD_ARG_PKGS }}"
+steps:
+  - sources:
+      - url: "https://sg.danny.cz/scsi/lsscsi-0.32.tar.gz"
+        destination: lsscsi.tar.gz
+        sha256: 0a800e9e94dca2ab702d65d72777ae8cae078e3d74d0bcbed64ba0849e8029a1
+        sha512: 96cb87be53eae9fa3a7defa0065f4dee8ccc23805a9ed1dc93d101c5e0610b78765b61449bf6ce58c13de8aae8400e4ac6a60ad64f840d092b9d7293106c5145
+    env:
+      PKG_CONFIG_PATH: /usr/lib/pkgconfig
+    prepare:
+      - |
+        sed -i 's#$VERSION#{{ .VERSION }}#' /pkg/manifest.yaml
+      - |
+        tar -xzf lsscsi.tar.gz --strip-components=1
+    build:
+      - |
+        ./configure --prefix=/usr/local --exec-prefix=/usr/local
+        make -j $(nproc) DESTDIR=/rootfs
+    install:
+      - |
+        make DESTDIR=/rootfs install
+      - |
+        cp /usr/bin/ls /rootfs/usr/local/bin
+        cp /usr/bin/free /rootfs/usr/local/bin
+        cp /usr/bin/pgrep /rootfs/usr/local/bin
+        cp /usr/bin/cat /rootfs/usr/local/bin
+        cp /usr/bin/dd /rootfs/usr/local/bin
+    # test:
+    #   - |
+    #     mkdir -p /extensions-validator-rootfs
+    #     cp -r /rootfs/ /extensions-validator-rootfs/rootfs
+    #     cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
+    #     /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
+finalize:
+  - from: /rootfs
+    to: /rootfs
+  - from: /pkg/manifest.yaml
+    to: /
