@@ -3,13 +3,11 @@ variant: scratch
 shell: /bin/bash
 dependencies:
   - stage: base
-  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
   - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/systemd-udevd:{{ .BUILD_ARG_PKGS }}"
   - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libjson-c:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
   - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/liburcu:{{ .BUILD_ARG_PKGS }}"
-  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libcap:{{ .BUILD_ARG_PKGS }}"
   - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libaio:{{ .BUILD_ARG_PKGS }}"
-  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/util-linux:{{ .BUILD_ARG_PKGS }}"
 steps:
   - sources:
       - url: https://github.com/opensvc/multipath-tools/archive/refs/tags/{{ .MULTIPATH_TOOLS_VERSION }}.tar.gz
@@ -46,11 +44,14 @@ steps:
       - |
         mkdir -p /rootfs/usr/local/etc/containers
         cp /pkg/multipathd.yaml /rootfs/usr/local/etc/containers/
+      # Remove kernel module loading config
       - |
         rm /rootfs/usr/lib/modules-load.d/multipath.conf
         rmdir /rootfs/usr/lib/modules-load.d
+      # Remove man pages and info pages to save space
+      - |
+        rm -rf /rootfs/usr/share
       # This file tries to create a tmpfs mount at `/var/run/multipath`.
-      # TODO: Probably should do this in the extension service or elsewhere.
       - |
         rm /rootfs/usr/lib/tmpfiles.d/multipath.conf
         rmdir /rootfs/usr/lib/tmpfiles.d
