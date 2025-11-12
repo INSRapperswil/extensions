@@ -1,0 +1,43 @@
+name: lsscsi
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/systemd-udevd:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libjson-c:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/liburcu:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libcap:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libaio:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/util-linux:{{ .BUILD_ARG_PKGS }}"
+steps:
+  - sources:
+      - url: "https://sg.danny.cz/scsi/lsscsi-{{ .LSSCSI_VERSION }}.tar.gz"
+        destination: lsscsi.tar.gz
+        sha256: {{ .LSSCSI_SHA256 }}
+        sha512: {{ .LSSCSI_SHA512 }}
+    env:
+      PKG_CONFIG_PATH: /usr/lib/pkgconfig
+    prepare:
+      - |
+        tar -xzf lsscsi.tar.gz --strip-components=1
+    build:
+      - |
+        ./configure --prefix=/usr/local --exec-prefix=/usr/local
+        make -j $(nproc) DESTDIR=/rootfs
+    install:
+      - |
+        make DESTDIR=/rootfs install
+
+      # TODO: from coreutlis: ls / cat / dd
+      # TODO: from  procps:  pgrep / free
+      # TODO: add blkid? from util-linux
+    # test:
+    #   - |
+    #     mkdir -p /extensions-validator-rootfs
+    #     cp -r /rootfs/ /extensions-validator-rootfs/rootfs
+    #     cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
+    #     /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
+finalize:
+  - from: /rootfs
+    to: /rootfs

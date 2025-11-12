@@ -1,0 +1,59 @@
+name: procps
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/systemd-udevd:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libjson-c:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/liburcu:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libcap:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libaio:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/util-linux:{{ .BUILD_ARG_PKGS }}"
+steps:
+  - sources:
+      - url: "https://gitlab.com/procps-ng/procps/-/archive/v{{ .PROCPS_VERSION }}/procps-v{{ .PROCPS_VERSION }}.tar.gz"
+        destination: procps.tar.gz
+        sha256: {{ .PROCPS_SHA256 }}
+        sha512: {{ .PROCPS_SHA512 }}
+    env:
+      PKG_CONFIG_PATH: /usr/lib/pkgconfig
+    prepare:
+      - |
+        tar -xzf procps.tar.gz --strip-components=1
+        ./autogen.sh
+    build:
+      - |
+        ./configure \
+            --prefix=/ \
+            --bindir=/bin \
+            --sbindir=/sbin \
+            --libdir=/lib \
+            --without-ncurses \
+            --disable-static \
+            --disable-w-from \
+            --disable-kill \
+            --disable-rpath \
+            --disable-modern-top \
+            --disable-all-programs \
+            --enable-free \
+            --enable-pgrep
+
+
+        make -j $(nproc) DESTDIR=/rootfs
+    install:
+      - |
+        make DESTDIR=/rootfs install
+
+      # TODO: from coreutlis: ls / cat / dd
+      # TODO: from  procps:  pgrep / free
+      # TODO: add blkid? from util-linux
+    # test:
+    #   - |
+    #     mkdir -p /extensions-validator-rootfs
+    #     cp -r /rootfs/ /extensions-validator-rootfs/rootfs
+    #     cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
+    #     /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
+finalize:
+  - from: /rootfs
+    to: /rootfs

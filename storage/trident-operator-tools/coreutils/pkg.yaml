@@ -1,0 +1,62 @@
+name: coreutils
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/lvm2:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/systemd-udevd:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libjson-c:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/liburcu:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libcap:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/libaio:{{ .BUILD_ARG_PKGS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/util-linux:{{ .BUILD_ARG_PKGS }}"
+steps:
+  - sources:
+      - url: "https://ftp.gnu.org/gnu/coreutils/coreutils-{{ .COREUTILS_VERSION }}.tar.xz"
+        destination: coreutils.tar.xz
+        sha256: {{ .COREUTILS_SHA256 }}
+        sha512: {{ .COREUTILS_SHA512 }}
+    env:
+      PKG_CONFIG_PATH: /usr/lib/pkgconfig
+    prepare:
+      - |
+        tar -xJf coreutils.tar.xz --strip-components=1
+
+
+
+    build:
+      - |
+        export FORCE_UNSAFE_CONFIGURE=1
+        ./configure \
+            --prefix=/usr \
+            --bindir=/bin \
+            --sysconfdir=/etc \
+            --mandir=/usr/share/man \
+            --infodir=/usr/share/info \
+            --disable-nls \
+            --enable-no-install-program=hostname,su,kill,uptime \
+            --enable-single-binary=symlinks \
+            --enable-single-binary-exceptions=env,fmt,sha512sum \
+            --with-openssl \
+            --disable-all-programs \
+            --enable-cat \
+            --enable-ls \
+            --enable-dd 
+
+        make -j $(nproc) DESTDIR=/rootfs
+    install:
+      - |
+        make DESTDIR=/rootfs install
+
+      # TODO: from coreutlis: ls / cat / dd
+      # TODO: from  procps:  pgrep / free
+      # TODO: add blkid? from util-linux
+    # test:
+    #   - |
+    #     mkdir -p /extensions-validator-rootfs
+    #     cp -r /rootfs/ /extensions-validator-rootfs/rootfs
+    #     cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
+    #     /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
+finalize:
+  - from: /rootfs
+    to: /rootfs

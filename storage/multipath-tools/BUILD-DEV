@@ -1,0 +1,25 @@
+export EXT_IMAGE=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+export INSTALLER_IMAGE=$(uuidgen | tr '[:upper:]' '[:lower:]')
+ 
+gmake local-multipath-tools REGISTRY=ttl.sh USERNAME=$EXT_IMAGE PLATFORM=linux/amd64 IMAGE_TAG=1h DEST=_out
+gmake local-util-linux-tools REGISTRY=ttl.sh USERNAME=$EXT_IMAGE PLATFORM=linux/amd64 IMAGE_TAG=1h DEST=_out
+gmake local-trident-operator-tools REGISTRY=ttl.sh USERNAME=$EXT_IMAGE PLATFORM=linux/amd64 IMAGE_TAG=1h DEST=_out
+
+gmake multipath-tools REGISTRY=ttl.sh USERNAME=$EXT_IMAGE PLATFORM=linux/amd64 IMAGE_TAG=1h PUSH=true
+gmake util-linux-tools REGISTRY=ttl.sh USERNAME=$EXT_IMAGE PLATFORM=linux/amd64 IMAGE_TAG=1h PUSH=true
+gmake trident-operator-tools REGISTRY=ttl.sh USERNAME=$EXT_IMAGE PLATFORM=linux/amd64 IMAGE_TAG=1h PUSH=true
+
+docker run -t --platform=linux/amd64 --rm -v "${PWD}/_out":/out ghcr.io/siderolabs/imager:v1.11.3 installer --system-extension-image ttl.sh/${EXT_IMAGE}/multipath-tools:v0.0.1 \
+  --system-extension-image ttl.sh/${EXT_IMAGE}/util-linux-tools:2.41.1\
+  --system-extension-image ghcr.io/siderolabs/iscsi-tools:v0.2.0\
+  --system-extension-image ttl.sh/${EXT_IMAGE}/trident-operator-tools:v0.0.1
+
+docker load -i ./_out/installer-amd64.tar 
+
+docker tag ghcr.io/siderolabs/installer-base:v1.11.3 \
+    ttl.sh/${INSTALLER_IMAGE}:1h
+
+docker push ttl.sh/${INSTALLER_IMAGE}:1h
+
+talosctl upgrade -i ttl.sh/${INSTALLER_IMAGE}:1h --force
