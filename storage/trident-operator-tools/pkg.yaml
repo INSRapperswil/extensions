@@ -25,11 +25,14 @@ steps:
       - |
         rm -rf /rootfs/usr/local/share
       - |
+        mkdir -p /rootfs/usr/local/bin
+        mkdir -p /rootfs/usr/local/sbin
         cp /usr/bin/ls /rootfs/usr/local/bin
         cp /usr/bin/free /rootfs/usr/local/bin
         cp /usr/bin/pgrep /rootfs/usr/local/bin
         cp /usr/bin/cat /rootfs/usr/local/bin
         cp /usr/bin/dd /rootfs/usr/local/bin
+        cp /usr/sbin/blockdev /rootfs/usr/local/sbin
     test:
       - |
         mkdir -p /extensions-validator-rootfs
