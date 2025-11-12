@@ -1,10 +1,10 @@
 version: v1alpha1
 metadata:
   name: multipath-tools
-  version: "$VERSION"
-  author: bzub
+  version: "{{ .VERSION }}"
+  author: Institute for Networks and Security (INS) at OST
   description: |
-    This system extension provides multipath-tools.
+    [{{ .TIER }}] This system extension provides multipath-tools.
   compatibility:
     talos:
       version: ">= v1.9.0"

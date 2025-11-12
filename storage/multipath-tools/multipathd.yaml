@@ -56,7 +56,12 @@ container:
       options:
         - bind
         - rw
-
+    - source: /sys
+      destination: /sys
+      type: bind
+      options:
+        - bind
+        - rw
 depends:
   - network:
       - addresses
