@@ -16,23 +16,9 @@ container:
       options:
         - bind
         - ro
-    # /etc/multipath.conf /etc/multipath/bindings
-    - source: /usr/local/lib/containers/multipathd/etc
-      destination: /etc
-      type: bind
-      options:
-        - bind
-        - rw
     # libs
     - source: /usr/local/lib/
       destination: /usr/local/lib/
-      type: bind
-      options:
-        - bind
-        - ro
-    # /user/bin
-    - source: /usr/local/bin
-      destination: /usr/local/bin
       type: bind
       options:
         - bind
@@ -46,12 +32,6 @@ container:
     # /dev/mapper and multipath disk
     - source: /dev
       destination: /dev
-      type: bind
-      options:
-        - bind
-        - rw
-    - source: /sys
-      destination: /sys
       type: bind
       options:
         - bind
